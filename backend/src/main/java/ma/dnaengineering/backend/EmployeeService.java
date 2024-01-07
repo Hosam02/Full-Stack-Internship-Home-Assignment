@@ -1,11 +1,14 @@
 package ma.dnaengineering.backend;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import ma.dnaengineering.backend.EmployeeService.EmployeeData;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +24,9 @@ public class EmployeeService {
         averageSalaries = new HashMap<>();
     }
 
-    public EmployeeData processCSVFile(String filePath) throws IOException {
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+    public EmployeeData processCSVFile(MultipartFile file) throws IOException {
+        InputStream inputStream = file.getInputStream();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] fields = line.split(",");
@@ -38,12 +42,12 @@ public class EmployeeService {
             }
         }
 
-        calculateAverageSalaries();
+        averageSalaries=calculateAverageSalaries();
 
         return new EmployeeData(employees, averageSalaries);
     }
 
-    public void calculateAverageSalaries() {
+    public Map<String, Double> calculateAverageSalaries() {
         Map<String, Double> totalSalaries = new HashMap<>();
         Map<String, Integer> jobTitleCounts = new HashMap<>();
 
@@ -61,6 +65,7 @@ public class EmployeeService {
             double averageSalary = totalSalary / count;
             averageSalaries.put(jobTitle, averageSalary);
         }
+        return totalSalaries;
     }
 
     public class EmployeeData {
